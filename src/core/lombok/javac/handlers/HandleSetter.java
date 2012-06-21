@@ -208,19 +208,22 @@ public class HandleSetter extends JavacAnnotationHandler<Setter> {
 		ListBuffer<JCStatement> statements = ListBuffer.lb();
 		List<JCAnnotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 		List<JCAnnotation> nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
+		List<JCAnnotation> nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 		
 		Name methodName = field.toName(setterName);
-		List<JCAnnotation> annsOnParam = nonNulls.appendList(nullables);
+		List<JCAnnotation> annsOnParam = nonNulls.appendList(nullables).appendList(nonEmpties);
 		
 		JCVariableDecl param = treeMaker.VarDef(treeMaker.Modifiers(Flags.FINAL, annsOnParam), fieldDecl.name, fieldDecl.vartype, null);
 		
-		if (nonNulls.isEmpty()) {
-			statements.append(treeMaker.Exec(assign));
-		} else {
+		if (! nonNulls.isEmpty()) {
 			JCStatement nullCheck = generateNullCheck(treeMaker, field);
 			if (nullCheck != null) statements.append(nullCheck);
-			statements.append(treeMaker.Exec(assign));
 		}
+		if (! nonEmpties.isEmpty()) {
+			JCStatement emptyCheck = generateEmptyCheck(treeMaker, field);
+			if (emptyCheck != null) statements.append(emptyCheck);
+		}
+		statements.append(treeMaker.Exec(assign));
 		
 		JCExpression methodType = null;
 		if (returnThis) {

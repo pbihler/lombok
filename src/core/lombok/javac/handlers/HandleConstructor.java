@@ -203,7 +203,8 @@ public class HandleConstructor {
 			JCVariableDecl field = (JCVariableDecl) fieldNode.get();
 			List<JCAnnotation> nonNulls = findAnnotations(fieldNode, TransformationsUtil.NON_NULL_PATTERN);
 			List<JCAnnotation> nullables = findAnnotations(fieldNode, TransformationsUtil.NULLABLE_PATTERN);
-			JCVariableDecl param = maker.VarDef(maker.Modifiers(Flags.FINAL, nonNulls.appendList(nullables)), field.name, field.vartype, null);
+			List<JCAnnotation> nonEmpties = findAnnotations(fieldNode, TransformationsUtil.NON_EMPTY_PATTERN);
+			JCVariableDecl param = maker.VarDef(maker.Modifiers(Flags.FINAL, nonNulls.appendList(nullables).appendList(nonEmpties)), field.name, field.vartype, null);
 			params.append(param);
 			JCFieldAccess thisX = maker.Select(maker.Ident(fieldNode.toName("this")), field.name);
 			JCAssign assign = maker.Assign(thisX, maker.Ident(field.name));
@@ -212,6 +213,10 @@ public class HandleConstructor {
 			if (!nonNulls.isEmpty()) {
 				JCStatement nullCheck = generateNullCheck(maker, fieldNode);
 				if (nullCheck != null) nullChecks.append(nullCheck);
+			}
+			if (!nonEmpties.isEmpty()) {
+				JCStatement emptyCheck = generateEmptyCheck(maker, fieldNode);
+				if (emptyCheck != null) nullChecks.append(emptyCheck);
 			}
 		}
 		
@@ -271,7 +276,8 @@ public class HandleConstructor {
 			}
 			List<JCAnnotation> nonNulls = findAnnotations(fieldNode, TransformationsUtil.NON_NULL_PATTERN);
 			List<JCAnnotation> nullables = findAnnotations(fieldNode, TransformationsUtil.NULLABLE_PATTERN);
-			JCVariableDecl param = maker.VarDef(maker.Modifiers(Flags.FINAL, nonNulls.appendList(nullables)), field.name, pType, null);
+			List<JCAnnotation> nonEmpties = findAnnotations(fieldNode, TransformationsUtil.NON_EMPTY_PATTERN);
+			JCVariableDecl param = maker.VarDef(maker.Modifiers(Flags.FINAL, nonNulls.appendList(nullables).appendList(nonEmpties)), field.name, pType, null);
 			params.append(param);
 			args.append(maker.Ident(field.name));
 		}

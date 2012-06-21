@@ -802,6 +802,43 @@ public class JavacHandlerUtil {
 		JCStatement throwStatement = treeMaker.Throw(exception);
 		return treeMaker.If(treeMaker.Binary(Javac.getCtcInt(JCTree.class, "EQ"), treeMaker.Ident(fieldName), treeMaker.Literal(Javac.getCtcInt(TypeTags.class, "BOT"), null)), throwStatement, null);
 	}
+
+	/**
+	 * Generates a new statement that checks if the given variable is empty, and if so, throws a {@code InvalidArgumentException} with the
+	 * variable name as message.
+	 */
+	public static JCStatement generateEmptyCheck(TreeMaker treeMaker, JavacNode variable) {
+		JCVariableDecl varDecl = (JCVariableDecl) variable.get();
+		if (isPrimitive(varDecl.vartype)) return null;
+		Name fieldName = varDecl.name;
+		JCExpression npe = chainDots(variable, "java", "lang", "InvalidArgumentException");
+		JCTree exception = treeMaker.NewClass(null, List.<JCExpression>nil(), npe, List.<JCExpression>of(treeMaker.Literal(fieldName.toString() + " must not be empty.")), null);
+		JCStatement throwStatement = treeMaker.Throw(exception);
+		
+		JCExpression collectionClassExpression = chainDots(variable, "java", "util", "Collection");
+		JCExpression instanceOfCollectionTest = treeMaker.TypeTest(treeMaker.Ident(fieldName), collectionClassExpression);
+		
+		JCExpression varCastExpression = treeMaker.TypeCast(collectionClassExpression, treeMaker.Ident(fieldName));		
+		JCExpression emptyCollectionTestExpression = treeMaker.Select(varCastExpression,variable.toName("isEmpty"));
+		JCMethodInvocation emptyCollectionTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyCollectionTestExpression, List.<JCExpression>nil());
+				
+		JCExpression varToStringExpression = treeMaker.Select(treeMaker.Ident(fieldName),variable.toName("toString"));
+		JCMethodInvocation varToStringInvocation = treeMaker.Apply(List.<JCExpression>nil(), varToStringExpression, List.<JCExpression>nil());
+		
+		JCExpression emptyTestExpression = chainDots(variable,"\"\"","equals");
+		List<JCExpression> emptyTestArgs = List.<JCExpression>of(varToStringInvocation);
+		JCMethodInvocation emptyTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyTestExpression, emptyTestArgs);
+
+		JCExpression nulltest = treeMaker.Binary(Javac.getCtcInt(JCTree.class, "NE"), 
+                treeMaker.Ident(fieldName), 
+                treeMaker.Literal(Javac.getCtcInt(TypeTags.class, "BOT"), null));
+		
+		return treeMaker.If(treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"), 
+				nulltest, 
+				treeMaker.Binary(Javac.getCtcInt(JCTree.class, "OR"),emptyTestInvocation,
+						treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"),instanceOfCollectionTest,emptyCollectionTestInvocation))),
+				            throwStatement, null);
+	}
 	
 	/**
 	 * Given a list of field names and a node referring to a type, finds each name in the list that does not match a field within the type.

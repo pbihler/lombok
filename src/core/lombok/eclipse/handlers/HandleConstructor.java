@@ -256,14 +256,19 @@ public class HandleConstructor {
 			Argument parameter = new Argument(field.name, fieldPos, copyType(field.type, source), Modifier.FINAL);
 			setGeneratedBy(parameter, source);
 			Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
+			Annotation[] nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 			Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
 			if (nonNulls.length != 0) {
 				Statement nullCheck = generateNullCheck(field, source);
 				if (nullCheck != null) nullChecks.add(nullCheck);
 			}
-			Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nullables);
+			Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nonEmpties, nullables);
 			if (copiedAnnotations.length != 0) parameter.annotations = copiedAnnotations;
 			params.add(parameter);
+			if (nonEmpties.length != 0) {
+				Statement emptyCheck = generateEmptyCheck(field, source);
+				if (emptyCheck != null) nullChecks.add(emptyCheck);
+			}
 		}
 		
 		nullChecks.addAll(assigns);

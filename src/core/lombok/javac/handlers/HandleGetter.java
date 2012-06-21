@@ -244,10 +244,11 @@ public class HandleGetter extends JavacAnnotationHandler<Getter> {
 		
 		List<JCAnnotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 		List<JCAnnotation> nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
+		List<JCAnnotation> nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 		
 		List<JCAnnotation> delegates = findDelegatesAndRemoveFromField(field);
 		
-		List<JCAnnotation> annsOnMethod = nonNulls.appendList(nullables);
+		List<JCAnnotation> annsOnMethod = nonNulls.appendList(nullables).appendList(nonEmpties);
 		if (isFieldDeprecated(field)) {
 			annsOnMethod = annsOnMethod.prepend(treeMaker.Annotation(chainDots(field, "java", "lang", "Deprecated"), List.<JCExpression>nil()));
 		}

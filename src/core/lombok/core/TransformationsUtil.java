@@ -75,13 +75,18 @@ public class TransformationsUtil {
 	/* NB: 'notnull' is not part of the pattern because there are lots of @NotNull annotations out there that are crappily named and actually mean
 	        something else, such as 'this field must not be null _when saved to the db_ but its perfectly okay to start out as such, and a no-args
 	        constructor and the implied starts-out-as-null state that goes with it is in fact mandatory' which happens with javax.validation.constraints.NotNull.
-	        Various problems with spring have also been reported. See issue #287, issue #271, and issue #43. */
+	        Various problems with spring have also been reported. See issue #287, issue #271, and issue #43. 
+	        
+	        As the same is somehow true for NonEmpty, it duplicates the NonNull-approach. */
 	
 	/** Matches the simple part of any annotation that lombok considers as indicative of NonNull status. */
 	public static final Pattern NON_NULL_PATTERN = Pattern.compile("^(?:nonnull)$", Pattern.CASE_INSENSITIVE);
 	
 	/** Matches the simple part of any annotation that lombok considers as indicative of Nullable status. */
 	public static final Pattern NULLABLE_PATTERN = Pattern.compile("^(?:nullable|checkfornull)$", Pattern.CASE_INSENSITIVE);
+
+	/** Matches the simple part of any annotation that lombok considers as indicative of NonEmpty status. */
+	public static final Pattern NON_EMPTY_PATTERN = Pattern.compile("^(?:nonempty)$", Pattern.CASE_INSENSITIVE);
 	
 	/**
 	 * Generates a getter name from a given field name.
