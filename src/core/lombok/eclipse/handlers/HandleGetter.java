@@ -222,7 +222,7 @@ public class HandleGetter extends EclipseAnnotationHandler<Getter> {
 			deprecated = new Annotation[] { generateDeprecatedAnnotation(source) };
 		}
 		
-		Annotation[] copiedAnnotations = copyAnnotations(source, findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN), findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN), findDelegatesAndMarkAsHandled(fieldNode), deprecated);
+		Annotation[] copiedAnnotations = copyAnnotations(source, findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN), findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN), findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN), findDelegatesAndMarkAsHandled(fieldNode), deprecated);
 		if (copiedAnnotations.length != 0) {
 			method.annotations = copiedAnnotations;
 		}

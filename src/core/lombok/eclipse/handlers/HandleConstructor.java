@@ -256,13 +256,13 @@ public class HandleConstructor {
 			Argument parameter = new Argument(field.name, fieldPos, copyType(field.type, source), Modifier.FINAL);
 			setGeneratedBy(parameter, source);
 			Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
-			Annotation[] nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 			Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
+			Annotation[] nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 			if (nonNulls.length != 0) {
 				Statement nullCheck = generateNullCheck(field, source);
 				if (nullCheck != null) nullChecks.add(nullCheck);
 			}
-			Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nonEmpties, nullables);
+			Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nullables, nonEmpties);
 			if (copiedAnnotations.length != 0) parameter.annotations = copiedAnnotations;
 			params.add(parameter);
 			if (nonEmpties.length != 0) {
@@ -335,7 +335,7 @@ public class HandleConstructor {
 			Argument parameter = new Argument(field.name, fieldPos, copyType(field.type, source), Modifier.FINAL);
 			setGeneratedBy(parameter, source);
 
-			Annotation[] copiedAnnotations = copyAnnotations(source, findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN), findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN));
+			Annotation[] copiedAnnotations = copyAnnotations(source, findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN), findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN), findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN));
 			if (copiedAnnotations.length != 0) parameter.annotations = copiedAnnotations;
 			params.add(parameter);
 		}

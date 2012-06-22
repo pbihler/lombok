@@ -817,7 +817,7 @@ public class JavacHandlerUtil {
                 treeMaker.Literal(Javac.getCtcInt(TypeTags.class, "BOT"), null));
 
 		
-		JCExpression npe = chainDots(variable, "java", "lang", "InvalidArgumentException");
+		JCExpression npe = chainDots(variable, "java", "lang", "IllegalArgumentException");
 		JCTree exception = treeMaker.NewClass(null, List.<JCExpression>nil(), npe, List.<JCExpression>of(treeMaker.Literal(fieldName.toString() + " must not be empty.")), null);
 		JCStatement throwStatement = treeMaker.Throw(exception);
 		
@@ -830,12 +830,16 @@ public class JavacHandlerUtil {
 					nulltest, zeroTest),
 		            throwStatement, null);
 			
-		}  else {
+		} else {
+
+			JCExpression objectClassExpression = chainDots(variable, "java", "lang", "Object");
 			
+			JCExpression varObjectCastExpression = treeMaker.TypeCast(objectClassExpression, treeMaker.Ident(fieldName));		
+					
 			JCExpression collectionClassExpression = chainDots(variable, "java", "util", "Collection");
-			JCExpression instanceOfCollectionTest = treeMaker.TypeTest(treeMaker.Ident(fieldName), collectionClassExpression);
+			JCExpression instanceOfCollectionTest = treeMaker.TypeTest(varObjectCastExpression, collectionClassExpression);
 			
-			JCExpression varCastExpression = treeMaker.TypeCast(collectionClassExpression, treeMaker.Ident(fieldName));		
+			JCExpression varCastExpression = treeMaker.TypeCast(collectionClassExpression, varObjectCastExpression);		
 			JCExpression emptyCollectionTestExpression = treeMaker.Select(varCastExpression,variable.toName("isEmpty"));
 			JCMethodInvocation emptyCollectionTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyCollectionTestExpression, List.<JCExpression>nil());
 					

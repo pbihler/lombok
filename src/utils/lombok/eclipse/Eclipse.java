@@ -144,6 +144,13 @@ public class Eclipse {
 		if (ref.dimensions() > 0) return false;
 		return PRIMITIVE_TYPE_NAME_PATTERN.matcher(toQualifiedName(ref.getTypeName())).matches();
 	}
+
+	/**
+	 * Checks if the given type reference represents an array type.
+	 */
+	public static boolean isArray(TypeReference ref) {
+		return ref.dimensions() > 0;
+	}
 	
 	/**
 	 * Returns the actual value of the given Literal or Literal-like node.

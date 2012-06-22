@@ -22,11 +22,11 @@ class NonEmptyPlain {
 	@java.beans.ConstructorProperties({"i", "s", "o", "p", "a"})
 	@java.lang.SuppressWarnings("all")
 	public NonEmptyPlain(@lombok.NonEmpty final int i, @lombok.NonEmpty final String s, @lombok.NonNull @lombok.NonEmpty final Object o, @Nullable @lombok.NonEmpty final Object p, @lombok.NonEmpty final int[] a) {
-		if (s != null && ("".equals(s.toString()) || s instanceof java.util.Collection && ((java.util.Collection)s).isEmpty())) throw new java.lang.InvalidArgumentException("s must not be empty.");
+		if (s != null && ("".equals(s.toString()) || (java.lang.Object)s instanceof java.util.Collection && ((java.util.Collection)(java.lang.Object)s).isEmpty())) throw new java.lang.IllegalArgumentException("s must not be empty.");
 		if (o == null) throw new java.lang.NullPointerException("o");
-		if (o != null && ("".equals(o.toString()) || o instanceof java.util.Collection && ((java.util.Collection)o).isEmpty())) throw new java.lang.InvalidArgumentException("o must not be empty.");
-		if (p != null && ("".equals(p.toString()) || p instanceof java.util.Collection && ((java.util.Collection)p).isEmpty())) throw new java.lang.InvalidArgumentException("p must not be empty.");
-		if (a != null && a.length == 0) throw new java.lang.InvalidArgumentException("a must not be empty.");
+		if (o != null && ("".equals(o.toString()) || (java.lang.Object)o instanceof java.util.Collection && ((java.util.Collection)(java.lang.Object)o).isEmpty())) throw new java.lang.IllegalArgumentException("o must not be empty.");
+		if (p != null && ("".equals(p.toString()) || (java.lang.Object)p instanceof java.util.Collection && ((java.util.Collection)(java.lang.Object)p).isEmpty())) throw new java.lang.IllegalArgumentException("p must not be empty.");
+		if (a != null && a.length == 0) throw new java.lang.IllegalArgumentException("a must not be empty.");
 		this.i = i;
 		this.s = s;
 		this.o = o;
@@ -45,7 +45,7 @@ class NonEmptyPlain {
 	public String getS() {
 		return this.s;
 	}
-
+	
 	@lombok.NonNull
 	@lombok.NonEmpty
 	@java.lang.SuppressWarnings("all")
@@ -70,29 +70,29 @@ class NonEmptyPlain {
 	public void setI(@lombok.NonEmpty final int i) {
 		this.i = i;
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public void setS(@lombok.NonEmpty final String s) {
-		if (s != null && ("".equals(s.toString()) || s instanceof java.util.Collection && ((java.util.Collection)s).isEmpty())) throw new java.lang.InvalidArgumentException("s must not be empty.");
+		if (s != null && ("".equals(s.toString()) || (java.lang.Object)s instanceof java.util.Collection && ((java.util.Collection)(java.lang.Object)s).isEmpty())) throw new java.lang.IllegalArgumentException("s must not be empty.");
 		this.s = s;
 	}
 	
 	@java.lang.SuppressWarnings("all")
 	public void setO(@lombok.NonNull @lombok.NonEmpty final Object o) {
 		if (o == null) throw new java.lang.NullPointerException("o");
-		if (o != null && ("".equals(o.toString()) || o instanceof java.util.Collection && ((java.util.Collection)o).isEmpty())) throw new java.lang.InvalidArgumentException("o must not be empty.");
+		if (o != null && ("".equals(o.toString()) || (java.lang.Object)o instanceof java.util.Collection && ((java.util.Collection)(java.lang.Object)o).isEmpty())) throw new java.lang.IllegalArgumentException("o must not be empty.");
 		this.o = o;
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public void setP(@Nullable @lombok.NonEmpty final Object p) {
-		if (p != null && ("".equals(p.toString()) || p instanceof java.util.Collection && ((java.util.Collection)p).isEmpty())) throw new java.lang.InvalidArgumentException("p must not be empty.");
+		if (p != null && ("".equals(p.toString()) || (java.lang.Object)p instanceof java.util.Collection && ((java.util.Collection)(java.lang.Object)p).isEmpty())) throw new java.lang.IllegalArgumentException("p must not be empty.");
 		this.p = p;
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public void setA(@lombok.NonEmpty final int[] a) {
-		if (a != null && a.length == 0) throw new java.lang.InvalidArgumentException("a must not be empty.");
+		if (a != null && a.length == 0) throw new java.lang.IllegalArgumentException("a must not be empty.");
 		this.a = a;
 	}
 }

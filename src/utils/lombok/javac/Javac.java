@@ -55,6 +55,7 @@ public class Javac {
 		String typeName = ref.toString();
 		return typeName.endsWith("]");
 	}
+	
 	/**
 	 * Turns an expression into a guessed intended literal. Only works for literals, as you can imagine.
 	 * 

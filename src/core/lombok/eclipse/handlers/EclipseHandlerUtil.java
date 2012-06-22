@@ -22,6 +22,8 @@
 package lombok.eclipse.handlers;
 
 import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.setGeneratedBy;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -53,6 +55,7 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.internal.compiler.ast.AND_AND_Expression;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
@@ -61,6 +64,8 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.Assignment;
+import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.eclipse.jdt.internal.compiler.ast.Clinit;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
@@ -70,7 +75,9 @@ import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.IfStatement;
+import org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
 import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
+import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
@@ -78,6 +85,7 @@ import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
+import org.eclipse.jdt.internal.compiler.ast.OR_OR_Expression;
 import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
@@ -104,6 +112,8 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 import org.osgi.framework.Bundle;
+
+import com.sun.org.apache.xpath.internal.operations.UnaryOperation;
 
 /**
  * Container for static utility methods useful to handlers written for eclipse.
@@ -1301,7 +1311,7 @@ public class EclipseHandlerUtil {
 		if (isPrimitive(variable.type)) return null;
 		AllocationExpression exception = new AllocationExpression();
 		setGeneratedBy(exception, source);
-		exception.type = new QualifiedTypeReference(fromQualifiedName("java.lang.InvalidArgumentException"), new long[]{p, p, p});
+		exception.type = new QualifiedTypeReference(TypeConstants.JAVA_LANG_ILLEGALARGUMENTEXCEPTION, new long[]{p, p, p});
 		setGeneratedBy(exception.type, source);
 		exception.arguments = new Expression[] { new StringLiteral((new String(variable.name) + " must not be empty.").toCharArray(), pS, pE, 0)};
 		setGeneratedBy(exception.arguments[0], source);
@@ -1310,15 +1320,132 @@ public class EclipseHandlerUtil {
 		
 		SingleNameReference varName = new SingleNameReference(variable.name, p);
 		setGeneratedBy(varName, source);
+		
 		NullLiteral nullLiteral = new NullLiteral(pS, pE);
 		setGeneratedBy(nullLiteral, source);
-		EqualExpression equalExpression = new EqualExpression(varName, nullLiteral, OperatorIds.NOT_EQUAL);
-		equalExpression.sourceStart = pS; equalExpression.statementEnd = equalExpression.sourceEnd = pE;
-		setGeneratedBy(equalExpression, source);
-		IfStatement ifStatement = new IfStatement(equalExpression, throwStatement, 0, 0);
-		setGeneratedBy(ifStatement, source);
-		// TODO if statement must be correctly constructed
-		return ifStatement;
+		
+		EqualExpression nullCheck = new EqualExpression(varName, nullLiteral, OperatorIds.NOT_EQUAL);
+		nullCheck.sourceStart = pS; nullCheck.statementEnd = nullCheck.sourceEnd = pE;
+		setGeneratedBy(nullCheck, source);
+		
+		if (isArray(variable.type)) {
+			
+			FieldReference lengthRef = new FieldReference("length".toCharArray(), 0);
+			lengthRef.receiver = new SingleNameReference(variable.name, p);
+		    setGeneratedBy(lengthRef, source);
+			setGeneratedBy(lengthRef.receiver, source);
+			
+			IntLiteral zeroLiteral = new IntLiteral("0".toCharArray(),pS,pE);
+			setGeneratedBy(zeroLiteral, source);
+			
+			EqualExpression equalExpression = new EqualExpression(lengthRef, zeroLiteral, OperatorIds.EQUAL_EQUAL);
+			equalExpression.sourceStart = pS; equalExpression.statementEnd = equalExpression.sourceEnd = pE;
+			setGeneratedBy(equalExpression, source);
+
+			
+			AND_AND_Expression andExpression = new AND_AND_Expression(nullCheck, equalExpression, OperatorIds.AND_AND);
+			andExpression.sourceStart = pS; andExpression.statementEnd = andExpression.sourceEnd = pE;
+			setGeneratedBy(andExpression, source);
+			
+			IfStatement ifStatement = new IfStatement(andExpression, throwStatement, 0, 0);
+			setGeneratedBy(ifStatement, source);
+			return ifStatement;
+			
+			
+		} else {
+			MessageSend toStringInvocation = new MessageSend();
+			toStringInvocation.arguments = new Expression[] {};
+			toStringInvocation.receiver = new SingleNameReference(variable.name, p);
+			toStringInvocation.selector = "toString".toCharArray();
+		    setGeneratedBy(toStringInvocation, source);
+			setGeneratedBy(toStringInvocation.receiver, source);
+		    
+			StringLiteral emptyString = new StringLiteral("".toCharArray(), pS, pE, 0);
+			setGeneratedBy(emptyString, source);
+			
+			MessageSend equalsInvocation = new MessageSend();
+			equalsInvocation.arguments = new Expression[] {toStringInvocation};
+			equalsInvocation.receiver = emptyString;
+			equalsInvocation.selector = "equals".toCharArray();
+		    setGeneratedBy(equalsInvocation, source);
+
+			SingleNameReference varNameForCast = new SingleNameReference(variable.name, p);
+			setGeneratedBy(varNameForCast, source);
+			
+		    TypeReference objectTypeReference = new QualifiedTypeReference(TypeConstants.JAVA_LANG_OBJECT, new long[]{p, p, p});
+		    setGeneratedBy(objectTypeReference, source);
+			CastExpression objectCast = makeCastExpression(varNameForCast, objectTypeReference,source);
+		    setGeneratedBy(objectCast, source);
+			
+		    TypeReference collectionTypeReference = new QualifiedTypeReference(TypeConstants.JAVA_UTIL_COLLECTION, new long[]{p, p, p});
+		    setGeneratedBy(collectionTypeReference, source);
+		    
+		    InstanceOfExpression instanceOfExpression = new InstanceOfExpression(objectCast, collectionTypeReference);
+		    instanceOfExpression.sourceStart = pS;  instanceOfExpression.sourceEnd = pE;
+			setGeneratedBy(instanceOfExpression, source);
+			
+			varNameForCast = new SingleNameReference(variable.name, p);
+			setGeneratedBy(varNameForCast, source);
+			objectTypeReference = new QualifiedTypeReference(TypeConstants.JAVA_LANG_OBJECT, new long[]{p, p, p});
+		    setGeneratedBy(objectTypeReference, source);
+			objectCast = makeCastExpression(varNameForCast, objectTypeReference,source);
+		    setGeneratedBy(objectCast, source);
+			
+		    collectionTypeReference = new QualifiedTypeReference(TypeConstants.JAVA_UTIL_COLLECTION, new long[]{p, p, p});
+		    setGeneratedBy(collectionTypeReference, source);
+	
+			CastExpression collectionCast = makeCastExpression(objectCast, collectionTypeReference,source);
+			setGeneratedBy(collectionCast, source);
+				
+			MessageSend isEmptyInvocation = new MessageSend();
+			isEmptyInvocation.arguments = new Expression[] {};
+			isEmptyInvocation.receiver = collectionCast; // due to a bug (=simplification) in CastExpression.print... this produces invalid java code upon call of printExpression, e.g. "(java.util.Collection) o.isEmpty()", but it should not matter, since the AST is correct
+			isEmptyInvocation.selector = "isEmpty".toCharArray();
+			setGeneratedBy(isEmptyInvocation, source);
+			
+			AND_AND_Expression collectionAndExpression = new AND_AND_Expression(instanceOfExpression, isEmptyInvocation, OperatorIds.AND_AND);
+			collectionAndExpression.sourceStart = pS; collectionAndExpression.statementEnd = collectionAndExpression.sourceEnd = pE;
+			setGeneratedBy(collectionAndExpression, source);
+			
+		    
+		    OR_OR_Expression orExpression = new OR_OR_Expression(equalsInvocation, collectionAndExpression, OperatorIds.OR_OR);
+		    orExpression.sourceStart = pS; orExpression.statementEnd = orExpression.sourceEnd = pE;
+			setGeneratedBy(orExpression, source);
+	
+			AND_AND_Expression andExpression = new AND_AND_Expression(nullCheck, orExpression, OperatorIds.AND_AND);
+			andExpression.sourceStart = pS; andExpression.statementEnd = andExpression.sourceEnd = pE;
+			setGeneratedBy(andExpression, source);
+		    
+			
+			/*char[] localVarName = (variable.name.toString() + "_as_collection").toCharArray();
+			SingleNameReference collectionVariableRef = new SingleNameReference(localVarName, p);
+			setGeneratedBy(collectionVariableRef, source);
+			
+			LocalDeclaration localVarDecl = new LocalDeclaration(localVarName, pS, pE);
+			localVarDecl.type = TypeReference.baseTypeReference(TypeIds.T_int, 0);
+			localVarDecl.type.sourceStart = pS; localVarDecl.type.sourceEnd = pE;
+			setGeneratedBy(localVarDecl, source);
+			localVarDecl.initialization = collectionCast;
+			
+		    Block collectionsBlock = new Block(0);
+		    collectionsBlock.statements = new Statement[] {throwStatement};
+		    collectionsBlock.sourceStart = pS; collectionsBlock.sourceEnd = pE;
+			setGeneratedBy(collectionsBlock, source);
+			
+		    IfStatement ifCollectionStatement =  new IfStatement(instanceOfExpression, collectionsBlock,0,0);
+		    ifCollectionStatement.sourceStart = pS; ifCollectionStatement.sourceEnd = pE;
+			setGeneratedBy(ifCollectionStatement, source);
+		    
+			IfStatement ifEqualsEmptyStatement = new IfStatement(equalsInvocation, throwStatement,ifCollectionStatement,0,0);
+			ifEqualsEmptyStatement.sourceStart = pS; ifEqualsEmptyStatement.sourceEnd = pE;
+			setGeneratedBy(ifEqualsEmptyStatement, source);*/
+			
+			IfStatement ifStatement = new IfStatement(andExpression, throwStatement,0,0);
+			setGeneratedBy(ifStatement, source);
+			
+			return ifStatement;
+			
+		}
 	}
 	
 	/**

@@ -240,8 +240,8 @@ public class HandleSetter extends EclipseAnnotationHandler<Setter> {
 		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
 		
 		Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
-		Annotation[] nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 		Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
+		Annotation[] nonEmpties = findAnnotations(field, TransformationsUtil.NON_EMPTY_PATTERN);
 		List<Statement> statements = new ArrayList<Statement>(5);
 		
 		if (nonNulls.length > 0) {
@@ -263,7 +263,7 @@ public class HandleSetter extends EclipseAnnotationHandler<Setter> {
 		}
 		method.statements = statements.toArray(new Statement[0]);
 		
-		Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nonEmpties, nullables);
+		Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nullables, nonEmpties);
 		if (copiedAnnotations.length != 0) param.annotations = copiedAnnotations;
 		return method;
 	}
