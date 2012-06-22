@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * Lombok is smart enough to use any annotation named {@code @NonEmpty} in any casing and
  * with any package name to generate the appropriate empty checks in the setter and constructor.
  * 
- * {@code @NonEmpty} defines that a marked collection must contain elements, any other marked object must not return an empty String when calling {@code toString()}.
+ * {@code @NonEmpty} defines that a marked collection/array must contain elements, any other marked object must not return an empty String when calling {@code toString()}.
  * 
  * {@code @NonEmpty} does NOT imply {@code @NonNull}, i.e. it is possible to define fields that are {@code null} or anything not empty.
  * 

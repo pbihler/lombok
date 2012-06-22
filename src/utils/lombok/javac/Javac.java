@@ -47,7 +47,14 @@ public class Javac {
 		String typeName = ref.toString();
 		return PRIMITIVE_TYPE_NAME_PATTERN.matcher(typeName).matches();
 	}
-	
+
+	/**
+	 * Checks if the given expression (that really ought to refer to a type expression) represents an array.
+	 */
+	public static boolean isArray(JCExpression ref) {
+		String typeName = ref.toString();
+		return typeName.endsWith("]");
+	}
 	/**
 	 * Turns an expression into a guessed intended literal. Only works for literals, as you can imagine.
 	 * 

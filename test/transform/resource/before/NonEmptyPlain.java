@@ -14,6 +14,8 @@ class NonEmptyPlain {
 	@Nullable
 	@lombok.NonEmpty
 	Object p;
+	@lombok.NonEmpty
+	int[] a;
 	
 	@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
 	@Retention(RetentionPolicy.CLASS)

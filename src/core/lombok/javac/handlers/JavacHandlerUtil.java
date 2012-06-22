@@ -811,33 +811,48 @@ public class JavacHandlerUtil {
 		JCVariableDecl varDecl = (JCVariableDecl) variable.get();
 		if (isPrimitive(varDecl.vartype)) return null;
 		Name fieldName = varDecl.name;
-		JCExpression npe = chainDots(variable, "java", "lang", "InvalidArgumentException");
-		JCTree exception = treeMaker.NewClass(null, List.<JCExpression>nil(), npe, List.<JCExpression>of(treeMaker.Literal(fieldName.toString() + " must not be empty.")), null);
-		JCStatement throwStatement = treeMaker.Throw(exception);
-		
-		JCExpression collectionClassExpression = chainDots(variable, "java", "util", "Collection");
-		JCExpression instanceOfCollectionTest = treeMaker.TypeTest(treeMaker.Ident(fieldName), collectionClassExpression);
-		
-		JCExpression varCastExpression = treeMaker.TypeCast(collectionClassExpression, treeMaker.Ident(fieldName));		
-		JCExpression emptyCollectionTestExpression = treeMaker.Select(varCastExpression,variable.toName("isEmpty"));
-		JCMethodInvocation emptyCollectionTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyCollectionTestExpression, List.<JCExpression>nil());
-				
-		JCExpression varToStringExpression = treeMaker.Select(treeMaker.Ident(fieldName),variable.toName("toString"));
-		JCMethodInvocation varToStringInvocation = treeMaker.Apply(List.<JCExpression>nil(), varToStringExpression, List.<JCExpression>nil());
-		
-		JCExpression emptyTestExpression = chainDots(variable,"\"\"","equals");
-		List<JCExpression> emptyTestArgs = List.<JCExpression>of(varToStringInvocation);
-		JCMethodInvocation emptyTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyTestExpression, emptyTestArgs);
 
 		JCExpression nulltest = treeMaker.Binary(Javac.getCtcInt(JCTree.class, "NE"), 
                 treeMaker.Ident(fieldName), 
                 treeMaker.Literal(Javac.getCtcInt(TypeTags.class, "BOT"), null));
+
 		
-		return treeMaker.If(treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"), 
-				nulltest, 
-				treeMaker.Binary(Javac.getCtcInt(JCTree.class, "OR"),emptyTestInvocation,
-						treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"),instanceOfCollectionTest,emptyCollectionTestInvocation))),
-				            throwStatement, null);
+		JCExpression npe = chainDots(variable, "java", "lang", "InvalidArgumentException");
+		JCTree exception = treeMaker.NewClass(null, List.<JCExpression>nil(), npe, List.<JCExpression>of(treeMaker.Literal(fieldName.toString() + " must not be empty.")), null);
+		JCStatement throwStatement = treeMaker.Throw(exception);
+		
+		// check if type is an array
+		if (isArray(varDecl.vartype)) {
+		
+			JCExpression arrayLengthExpression = treeMaker.Select(treeMaker.Ident(fieldName), variable.toName("length"));
+			JCExpression zeroTest = treeMaker.Binary(Javac.getCtcInt(JCTree.class, "EQ"),arrayLengthExpression,treeMaker.Literal(0));
+			return treeMaker.If(treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"), 
+					nulltest, zeroTest),
+		            throwStatement, null);
+			
+		}  else {
+			
+			JCExpression collectionClassExpression = chainDots(variable, "java", "util", "Collection");
+			JCExpression instanceOfCollectionTest = treeMaker.TypeTest(treeMaker.Ident(fieldName), collectionClassExpression);
+			
+			JCExpression varCastExpression = treeMaker.TypeCast(collectionClassExpression, treeMaker.Ident(fieldName));		
+			JCExpression emptyCollectionTestExpression = treeMaker.Select(varCastExpression,variable.toName("isEmpty"));
+			JCMethodInvocation emptyCollectionTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyCollectionTestExpression, List.<JCExpression>nil());
+					
+			JCExpression varToStringExpression = treeMaker.Select(treeMaker.Ident(fieldName),variable.toName("toString"));
+			JCMethodInvocation varToStringInvocation = treeMaker.Apply(List.<JCExpression>nil(), varToStringExpression, List.<JCExpression>nil());
+			
+			JCExpression emptyTestExpression = chainDots(variable,"\"\"","equals");
+			List<JCExpression> emptyTestArgs = List.<JCExpression>of(varToStringInvocation);
+			JCMethodInvocation emptyTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyTestExpression, emptyTestArgs);
+	
+			
+			return treeMaker.If(treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"), 
+					nulltest, 
+					treeMaker.Binary(Javac.getCtcInt(JCTree.class, "OR"),emptyTestInvocation,
+							treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"),instanceOfCollectionTest,emptyCollectionTestInvocation))),
+					            throwStatement, null);
+		}
 	}
 	
 	/**
