@@ -1329,13 +1329,13 @@ public class EclipseHandlerUtil {
 		setGeneratedBy(nullCheck, source);
 		
 		if (isArray(variable.type)) {
-			
 			FieldReference lengthRef = new FieldReference("length".toCharArray(), 0);
 			lengthRef.receiver = new SingleNameReference(variable.name, p);
 		    setGeneratedBy(lengthRef, source);
 			setGeneratedBy(lengthRef.receiver, source);
 			
-			IntLiteral zeroLiteral = new IntLiteral("0".toCharArray(),pS,pE);
+			IntLiteral zeroLiteral = makeIntLiteral("0".toCharArray(),source);
+			zeroLiteral.sourceStart = pS; zeroLiteral.sourceEnd = pE;
 			setGeneratedBy(zeroLiteral, source);
 			
 			EqualExpression equalExpression = new EqualExpression(lengthRef, zeroLiteral, OperatorIds.EQUAL_EQUAL);
@@ -1350,8 +1350,6 @@ public class EclipseHandlerUtil {
 			IfStatement ifStatement = new IfStatement(andExpression, throwStatement, 0, 0);
 			setGeneratedBy(ifStatement, source);
 			return ifStatement;
-			
-			
 		} else {
 			MessageSend toStringInvocation = new MessageSend();
 			toStringInvocation.arguments = new Expression[] {};
@@ -1415,36 +1413,11 @@ public class EclipseHandlerUtil {
 			AND_AND_Expression andExpression = new AND_AND_Expression(nullCheck, orExpression, OperatorIds.AND_AND);
 			andExpression.sourceStart = pS; andExpression.statementEnd = andExpression.sourceEnd = pE;
 			setGeneratedBy(andExpression, source);
-		    
-			
-			/*char[] localVarName = (variable.name.toString() + "_as_collection").toCharArray();
-			SingleNameReference collectionVariableRef = new SingleNameReference(localVarName, p);
-			setGeneratedBy(collectionVariableRef, source);
-			
-			LocalDeclaration localVarDecl = new LocalDeclaration(localVarName, pS, pE);
-			localVarDecl.type = TypeReference.baseTypeReference(TypeIds.T_int, 0);
-			localVarDecl.type.sourceStart = pS; localVarDecl.type.sourceEnd = pE;
-			setGeneratedBy(localVarDecl, source);
-			localVarDecl.initialization = collectionCast;
-			
-		    Block collectionsBlock = new Block(0);
-		    collectionsBlock.statements = new Statement[] {throwStatement};
-		    collectionsBlock.sourceStart = pS; collectionsBlock.sourceEnd = pE;
-			setGeneratedBy(collectionsBlock, source);
-			
-		    IfStatement ifCollectionStatement =  new IfStatement(instanceOfExpression, collectionsBlock,0,0);
-		    ifCollectionStatement.sourceStart = pS; ifCollectionStatement.sourceEnd = pE;
-			setGeneratedBy(ifCollectionStatement, source);
-		    
-			IfStatement ifEqualsEmptyStatement = new IfStatement(equalsInvocation, throwStatement,ifCollectionStatement,0,0);
-			ifEqualsEmptyStatement.sourceStart = pS; ifEqualsEmptyStatement.sourceEnd = pE;
-			setGeneratedBy(ifEqualsEmptyStatement, source);*/
 			
 			IfStatement ifStatement = new IfStatement(andExpression, throwStatement,0,0);
 			setGeneratedBy(ifStatement, source);
 			
 			return ifStatement;
-			
 		}
 	}
 	

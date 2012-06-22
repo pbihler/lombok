@@ -821,17 +821,13 @@ public class JavacHandlerUtil {
 		JCTree exception = treeMaker.NewClass(null, List.<JCExpression>nil(), npe, List.<JCExpression>of(treeMaker.Literal(fieldName.toString() + " must not be empty.")), null);
 		JCStatement throwStatement = treeMaker.Throw(exception);
 		
-		// check if type is an array
 		if (isArray(varDecl.vartype)) {
-		
 			JCExpression arrayLengthExpression = treeMaker.Select(treeMaker.Ident(fieldName), variable.toName("length"));
 			JCExpression zeroTest = treeMaker.Binary(Javac.getCtcInt(JCTree.class, "EQ"),arrayLengthExpression,treeMaker.Literal(0));
 			return treeMaker.If(treeMaker.Binary(Javac.getCtcInt(JCTree.class, "AND"), 
 					nulltest, zeroTest),
 		            throwStatement, null);
-			
 		} else {
-
 			JCExpression objectClassExpression = chainDots(variable, "java", "lang", "Object");
 			
 			JCExpression varObjectCastExpression = treeMaker.TypeCast(objectClassExpression, treeMaker.Ident(fieldName));		
