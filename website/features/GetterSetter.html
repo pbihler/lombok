@@ -61,6 +61,9 @@
 				<em>null</em>. Therefore, these annotations result in an explicit null check in the generated setter. Also, these
 				annotations (as well as any annotation named <code>@Nullable</code> or <code>@CheckForNull</code>) are copied to setter parameter and getter method.
 				</p><p>
+				In the same way, <code>@NonEmpty</code> adds an explicit check to the setter, checking the argument for not being empty. An argument is considered <i>empty</i> if it is an array with no elements, a collection with size 0 or an objects that returns "" for <code>toString()</code>.
+				An argument which is <code>null</code> is not considered to be empty, you have to check this explicitly with <code>@NonNull</code>. Also, these annotations are copied to setter parameter and getter method.
+				</p><p>
 				You can annotate a class with a <code>@Getter</code> or <code>@Setter</code> annotation. Doing so is equivalent to annotating all non-static fields
 				in that class with that annotation. <code>@Getter</code>/<code>@Setter</code> annotations on fields take precedence over the ones on classes.
 				</p><p>
