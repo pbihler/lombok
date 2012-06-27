@@ -842,7 +842,8 @@ public class JavacHandlerUtil {
 			JCExpression varToStringExpression = treeMaker.Select(treeMaker.Ident(fieldName),variable.toName("toString"));
 			JCMethodInvocation varToStringInvocation = treeMaker.Apply(List.<JCExpression>nil(), varToStringExpression, List.<JCExpression>nil());
 			
-			JCExpression emptyTestExpression = chainDots(variable,"\"\"","equals");
+			JCExpression emptyString = treeMaker.Literal("");
+			JCExpression emptyTestExpression = treeMaker.Select(emptyString,variable.toName("equals"));
 			List<JCExpression> emptyTestArgs = List.<JCExpression>of(varToStringInvocation);
 			JCMethodInvocation emptyTestInvocation = treeMaker.Apply(List.<JCExpression>nil(), emptyTestExpression, emptyTestArgs);
 	
